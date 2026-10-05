@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DYLUX</title>
+<meta name="description" content="DYLUX — DJ, producer, sound designer. Music, tools and shows.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="DYLUX">
+<meta property="og:description" content="DJ / Producer. Stream the latest, grab the WaveTable Generator.">
+<meta property="og:image" content="assets/dylux-logo.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- boot loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="loader-text mono">LOADING <span id="loaderPct">0</span>%</div>
+</div>
+
+<canvas class="bg-canvas" id="bg" aria-hidden="true"></canvas>
+<div class="bg-vignette" aria-hidden="true"></div>
+<div class="fx-grain" aria-hidden="true"></div>
+<div class="fx-scan" aria-hidden="true"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+
+<!-- ===== HEADER: tabs left / logo center / socials right ===== -->
+<header class="topbar" id="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+
+  <nav class="nav-left" id="nav" aria-label="Main">
+    <a href="#home" class="nav-link is-active" data-idx="01">Home</a>
+    <a href="#music" class="nav-link" data-idx="02">Music</a>
+    <a href="#shop" class="nav-link" data-idx="03">Shop</a>
+    <a href="#about" class="nav-link" data-idx="04">About</a>
+    <span class="nav-ind" id="navInd"></span>
+  </nav>
+
+  <a href="#home" class="brand" aria-label="DYLUX home">
+    <img src="assets/dylux-logo.png" alt="DYLUX" class="brand-img glitch-img">
+  </a>
+
+  <ul class="socials" id="socials" aria-label="Socials"><!-- filled by app.js from CONFIG --></ul>
+</header>
+
+<main>
+  <!-- ===== HOME ===== -->
+  <section id="home" class="panel hero">
+    <canvas id="viz" class="hero-viz" aria-hidden="true"></canvas>
+    <div class="hero-inner">
+      <p class="kicker mono reveal">// DJ — PRODUCER — SOUND DESIGN</p>
+      <div class="hero-logo reveal">
+        <div class="glitch" data-glitch>
+          <img src="assets/dylux-logo.png" alt="DYLUX">
+          <img src="assets/dylux-logo.png" alt="" aria-hidden="true" class="g g1">
+          <img src="assets/dylux-logo.png" alt="" aria-hidden="true" class="g g2">
+        </div>
+      </div>
+      <div class="hero-cta reveal">
+        <a href="#music" class="btn btn-solid magnetic"><span>▶ Listen now</span></a>
+        <a href="#shop" class="btn btn-ghost magnetic"><span>Free WaveTable Generator</span></a>
+      </div>
+    </div>
+    <a href="#music" class="scroll-cue mono" aria-label="Scroll to music"><span>SCROLL</span><i></i></a>
+  </section>
+
+  <!-- marquee like XLNT -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>DYLUX</span><b>✦</b><span>BASS MUSIC</span><b>✦</b><span>NEW SOUNDS LOADING</span><b>✦</b><span>FREE WAVETABLES</span><b>✦</b>
+      <span>DYLUX</span><b>✦</b><span>BASS MUSIC</span><b>✦</b><span>NEW SOUNDS LOADING</span><b>✦</b><span>FREE WAVETABLES</span><b>✦</b>
+    </div>
+  </div>
+
+  <!-- ===== MUSIC ===== -->
+  <section id="music" class="panel section">
+    <header class="sec-head reveal">
+      <span class="sec-num mono">02</span>
+      <h2 class="sec-title" data-text="MUSIC">MUSIC</h2>
+      <p class="sec-sub">Stream straight from SoundCloud. Turn it up.</p>
+    </header>
+
+    <div class="player-wrap reveal">
+      <div class="deck">
+        <div class="deck-top mono">
+          <span class="led" id="led"></span>
+          <span id="deckStatus">STANDBY</span>
+          <span class="deck-sp"></span>
+          <span>DYLUX // DECK A</span>
+        </div>
+        <div class="deck-bars" id="deckBars" aria-hidden="true"></div>
+        <div class="sc-frame" id="scFrame"><!-- SoundCloud widget injected by app.js --></div>
+      </div>
+      <a class="btn btn-ghost sc-follow magnetic" id="scFollow" href="#" target="_blank" rel="noopener"><span>Follow on SoundCloud ↗</span></a>
+    </div>
+  </section>
+
+  <!-- ===== SHOP ===== -->
+  <section id="shop" class="panel section">
+    <header class="sec-head reveal">
+      <span class="sec-num mono">03</span>
+      <h2 class="sec-title" data-text="SHOP">SHOP</h2>
+      <p class="sec-sub">Tools from the studio. Pay what you want — or nothing at all.</p>
+    </header>
+
+    <article class="product reveal tilt" id="product">
+      <div class="product-art" aria-hidden="true">
+        <canvas id="wtCanvas"></canvas>
+        <span class="tag mono">FREE / NAME YOUR PRICE</span>
+      </div>
+      <div class="product-body">
+        <p class="mono product-kicker">TOOL 001</p>
+        <h3 class="product-title">WaveTable Generator</h3>
+        <p class="product-desc" data-placeholder>
+          [PLACEHOLDER] Generate fresh wavetables for Serum, Vital and more. Short description of what it does,
+          what format it exports and what synths it works with goes here.
+        </p>
+        <ul class="product-feats mono">
+          <li>Works with Serum / Vital</li>
+          <li>Instant download</li>
+          <li>Free forever</li>
+        </ul>
+
+        <div class="pwyw">
+          <label class="mono" for="price">NAME YOUR PRICE (USD)</label>
+          <div class="pwyw-row">
+            <button class="chip" data-amt="0">$0</button>
+            <button class="chip" data-amt="5">$5</button>
+            <button class="chip" data-amt="10">$10</button>
+            <button class="chip" data-amt="20">$20</button>
+            <div class="price-input"><span>$</span><input id="price" type="number" min="0" step="1" value="0" inputmode="numeric"></div>
+          </div>
+          <button class="btn btn-solid btn-wide magnetic" id="buyBtn"><span id="buyLabel">Download free</span></button>
+          <p class="fine" id="buyFine">No account, no email. Any tip goes straight to supporting new music.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about" class="panel section">
+    <header class="sec-head reveal">
+      <span class="sec-num mono">04</span>
+      <h2 class="sec-title" data-text="ABOUT">ABOUT</h2>
+    </header>
+
+    <div class="about-grid">
+      <figure class="about-photo reveal">
+        <img src="assets/dylux-dj.jpg" alt="DYLUX on the decks, lit by a blue spotlight" class="about-img" width="437" height="437" loading="lazy">
+        <figcaption class="mono">DYLUX — LIVE</figcaption>
+      </figure>
+      <div class="about-copy reveal">
+        <p class="lead" data-placeholder>[PLACEHOLDER] DYLUX is a DJ and producer from [CITY] making [GENRES]. One or two punchy lines that say who you are.</p>
+        <p data-placeholder>[PLACEHOLDER] A longer paragraph: how you started, your sound, shows you've played, labels or artists you've worked with, what's coming next.</p>
+        <div class="stats">
+          <div><b class="count" data-to="0">0</b><span class="mono">SHOWS</span></div>
+          <div><b class="count" data-to="0">0</b><span class="mono">RELEASES</span></div>
+          <div><b class="count" data-to="0">0</b><span class="mono">YEARS</span></div>
+        </div>
+        <a class="btn btn-ghost magnetic" id="bookingBtn" href="#"><span>Booking & inquiries</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <img src="assets/dylux-logo.png" alt="DYLUX" class="footer-logo">
+  <ul class="socials socials-foot" id="socialsFoot"></ul>
+  <p class="mono fine">© <span id="year"></span> DYLUX — dylux-beats.com</p>
+</footer>
+
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
