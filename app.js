@@ -15,7 +15,7 @@ const CONFIG = {
   },
   // Shop: your Gumroad product link, e.g. "https://dylux.gumroad.com/l/wavetable-generator".
   // While empty, the button shows "Coming soon".
-  gumroadUrl: "",
+  gumroadUrl: "https://sk8erdstein.gumroad.com/l/odbob",
   bookingEmail: "",                // e.g. booking@dylux-beats.com
 };
 
