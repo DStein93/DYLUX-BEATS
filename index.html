@@ -121,22 +121,14 @@
           what format it exports and what synths it works with goes here.
         </p>
         <ul class="product-feats mono">
-          <li>Works with Serum / Vital</li>
+          <li>Windows installer</li>
+          <li>Free / pay what you want</li>
           <li>Instant download</li>
-          <li>Free forever</li>
         </ul>
 
         <div class="pwyw">
-          <label class="mono" for="price">NAME YOUR PRICE (USD)</label>
-          <div class="pwyw-row">
-            <button class="chip" data-amt="0">$0</button>
-            <button class="chip" data-amt="5">$5</button>
-            <button class="chip" data-amt="10">$10</button>
-            <button class="chip" data-amt="20">$20</button>
-            <div class="price-input"><span>$</span><input id="price" type="number" min="0" step="1" value="0" inputmode="numeric"></div>
-          </div>
-          <button class="btn btn-solid btn-wide magnetic" id="buyBtn"><span id="buyLabel">Download free</span></button>
-          <p class="fine" id="buyFine">No account, no email. Any tip goes straight to supporting new music.</p>
+          <a class="btn btn-solid btn-wide magnetic" id="buyBtn" href="#" data-gumroad-overlay-checkout="true"><span id="buyLabel">Coming soon</span></a>
+          <p class="fine" id="buyFine">Enter $0 for a free download, or name your price to support new music. Checkout and delivery by Gumroad.</p>
         </div>
       </div>
     </article>
@@ -175,6 +167,7 @@
 </footer>
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
+<script src="https://gumroad.com/js/gumroad.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

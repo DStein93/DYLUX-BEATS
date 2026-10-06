@@ -13,11 +13,9 @@ const CONFIG = {
     spotify:    "",
     youtube:    "",
   },
-  // Shop: put the file in /downloads and set its path here, e.g. "downloads/wavetable-generator.zip".
+  // Shop: your Gumroad product link, e.g. "https://dylux.gumroad.com/l/wavetable-generator".
   // While empty, the button shows "Coming soon".
-  downloadUrl: "",
-  // Stripe Payment Link set to "customers choose what to pay" (PLACEHOLDER)
-  tipLink: "",
+  gumroadUrl: "",
   bookingEmail: "",                // e.g. booking@dylux-beats.com
 };
 
@@ -175,7 +173,7 @@ if (!reduced) $$(".magnetic").forEach(m => {
   })();
 })();
 
-/* ---------- SHOP: wavetable art + tilt + name-your-price ---------- */
+/* ---------- SHOP: wavetable art + tilt + Gumroad checkout ---------- */
 (() => {
   const c = $("#wtCanvas"), x = c.getContext("2d"); let w, h;
   function size() { const d = Math.min(devicePixelRatio, 2); w = c.clientWidth; h = c.clientHeight; c.width = w * d; c.height = h * d; x.setTransform(d, 0, 0, d, 0, 0); }
@@ -206,25 +204,14 @@ if (!reduced) $$(".magnetic").forEach(m => {
     prod.addEventListener("pointerleave", () => { prod.style.transform = ""; });
   }
 
-  const input = $("#price"), chips = $$(".chip"), label = $("#buyLabel"), fine = $("#buyFine");
-  const ready = !!CONFIG.downloadUrl;
-  if (!CONFIG.tipLink) { $(".pwyw label").hidden = true; $(".pwyw-row").hidden = true; input.value = 0; }
-  function sync() {
-    const v = Math.max(0, Math.floor(+input.value || 0));
-    chips.forEach(ch => ch.classList.toggle("on", +ch.dataset.amt === v));
-    if (!ready) { label.textContent = "Coming soon"; fine.textContent = "The WaveTable Generator drops here soon. Follow on SoundCloud to catch it."; return; }
-    label.textContent = v ? `Pay $${v} & download` : "Download free";
-    fine.textContent = v ? "Your download starts right away; checkout opens in a new tab. Thank you for the support." : "No account, no email. Free to download.";
+  const buy = $("#buyBtn"), label = $("#buyLabel"), fine = $("#buyFine");
+  if (CONFIG.gumroadUrl) {
+    buy.href = CONFIG.gumroadUrl;          // gumroad.js turns this link into an on-page checkout overlay
+    label.textContent = "Get it free / name your price";
+  } else {
+    buy.removeAttribute("href"); buy.setAttribute("aria-disabled", "true");
+    fine.textContent = "The WaveTable Generator drops here soon. Follow on SoundCloud to catch it.";
   }
-  chips.forEach(ch => ch.addEventListener("click", () => { input.value = ch.dataset.amt; sync(); }));
-  input.addEventListener("input", sync); sync();
-
-  $("#buyBtn").addEventListener("click", () => {
-    if (!ready) return;
-    const v = Math.max(0, Math.floor(+input.value || 0));
-    if (v && CONFIG.tipLink) window.open(`${CONFIG.tipLink}?__prefilled_amount=${v * 100}`, "_blank", "noopener");
-    const a = document.createElement("a"); a.href = CONFIG.downloadUrl; a.download = ""; document.body.append(a); a.click(); a.remove();
-  });
 })();
 
 /* ---------- booking ---------- */
