@@ -94,15 +94,8 @@ const heroGlitch = $(".hero .glitch");
 heroGlitch.addEventListener("mouseenter", () => glitch(heroGlitch));
 (function loop() { setTimeout(() => { glitch(heroGlitch); loop(); }, (playing ? 900 : 2600) + Math.random() * 2500); })();
 
-/* ---------- cursor + magnetic buttons ---------- */
-const cur = $("#cursor"); let mx = innerWidth / 2, my = innerHeight / 2, cx = mx, cy = my;
-addEventListener("pointermove", e => { mx = e.clientX; my = e.clientY; }, { passive: true });
-(function cursorLoop() { cx += (mx - cx) * .2; cy += (my - cy) * .2; cur.style.transform = `translate(${cx}px,${cy}px)`; requestAnimationFrame(cursorLoop); })();
-document.addEventListener("pointerover", e => cur.classList.toggle("big", !!e.target.closest("a,button,input")));
-if (!reduced) $$(".magnetic").forEach(m => {
-  m.addEventListener("pointermove", e => { const r = m.getBoundingClientRect(); m.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .25}px,${(e.clientY - r.top - r.height / 2) * .35}px)`; });
-  m.addEventListener("pointerleave", () => { m.style.transform = ""; });
-});
+let mx = innerWidth / 2, my = innerHeight / 2;
+addEventListener("pointermove", e => { mx=e.clientX; my=e.clientY; }, {passive:true});
 
 /* ---------- HERO visualizer: oscilloscope ribbons + particles ---------- */
 (() => {
@@ -138,98 +131,80 @@ if (!reduced) $$(".magnetic").forEach(m => {
   frame();
 })();
 
-/* ---------- MUSIC: native SoundCloud player + metadata + signal display ---------- */
+/* ---------- SoundCloud transport and generative orbital sculpture ---------- */
 (() => {
-  const canvas = $("#deckScope"), ctx = canvas.getContext("2d");
-  const frame = $("#scFrame"), follow = $("#scFollow");
-  let progress = 0, phase = 0, width = 1, height = 1, lastFrame = 0, currentTrackId = null;
-  function size() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    width = canvas.clientWidth; height = canvas.clientHeight;
-    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  new ResizeObserver(size).observe(canvas); size();
-  const url = CONFIG.soundcloud;
-  if (url) {
-    frame.innerHTML = `<iframe id="sc" allow="autoplay" scrolling="no" title="DYLUX on SoundCloud"
-      src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff792e&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&show_artwork=true&visual=false"></iframe>`;
-    follow.href = url;
-    let attempts = 0;
-    const wire = () => {
-      if (!window.SC?.Widget) {
-        if (++attempts < 40) setTimeout(wire, 300);
-        return;
-      }
-      const wd = SC.Widget($("#sc"));
-      const updateTrack = () => wd.getCurrentSound(sound => {
-        if (!sound) return;
-        if (sound.id !== currentTrackId) { currentTrackId = sound.id; progress = 0; }
-        $("#nowPlaying").textContent = sound.title || "DYLUX";
-        const tags = parseSoundCloudTags(sound.tag_list);
-        if (!tags.length && sound.genre) tags.push(sound.genre);
-        const root = $("#trackTags");
-        root.replaceChildren(...tags.map(tag => {
-          const chip = document.createElement("span");
-          chip.className = "track-tag"; chip.textContent = tag;
-          return chip;
-        }));
-        root.hidden = !tags.length;
-      });
-      const set = on => {
-        playing = on; $("#led").classList.toggle("on", on);
-        $(".deck").classList.toggle("is-playing", on);
-        $("#deckStatus").textContent = on ? "NOW PLAYING" : "PAUSED";
-        $("#scopeState").textContent = on ? "PLAYING" : "IDLE";
-      };
-      wd.bind(SC.Widget.Events.READY, updateTrack);
-      wd.bind(SC.Widget.Events.PLAY, () => { updateTrack(); set(true); });
-      wd.bind(SC.Widget.Events.PAUSE, () => set(false));
-      wd.bind(SC.Widget.Events.FINISH, () => { set(false); progress = 0; });
-      wd.bind(SC.Widget.Events.PLAY_PROGRESS, data => { progress = Math.max(0, Math.min(1, data.relativePosition || 0)); });
-      wd.bind(SC.Widget.Events.SEEK, data => { progress = Math.max(0, Math.min(1, data.relativePosition || 0)); updateTrack(); });
-      wd.bind(SC.Widget.Events.ERROR, () => { set(false); $("#deckStatus").textContent = "OPEN IN SOUNDCLOUD"; });
-    };
-    wire();
-  } else {
-    frame.textContent = "New music is on the way."; follow.hidden = true;
-  }
-  function draw(now = 0) {
-    if (!reduced) requestAnimationFrame(draw);
-    if (now - lastFrame < 32 && now !== 0) return;
-    lastFrame = now;
-    if (!reduced) phase += playing ? 0.055 : 0.012;
-    ctx.clearRect(0, 0, width, height);
-    ctx.strokeStyle = "#8dbbff12"; ctx.lineWidth = 1;
-    for (let x = 0; x < width; x += 32) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
-    for (let y = 0; y < height; y += 24) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
-    const gradient = ctx.createLinearGradient(0,0,width,0);
-    gradient.addColorStop(0,"#77deff"); gradient.addColorStop(.52,"#c6b3ff"); gradient.addColorStop(1,"#77deff");
-    const count = Math.max(24, Math.floor(width / 7)), step = width / count;
-    for (let i = 0; i < count; i++) {
-      const k = i / count, envelope = Math.pow(Math.sin(k * Math.PI),.6);
-      const movement = .3 + .7 * Math.abs(Math.sin(i*.34 + phase) * Math.cos(i*.09 - phase*.7));
-      const bar = 5 + envelope * movement * height * (playing ? .76 : .38);
-      ctx.fillStyle = gradient; ctx.globalAlpha = .18 + movement * (playing ? .55 : .3);
-      ctx.fillRect(i * step, (height - bar)/2, Math.max(1, step-3),bar);
-    }
-    ctx.globalAlpha = 1;
-    for (let layer = 0; layer < 3; layer++) {
+  const canvas=$("#deckScope"),ctx=canvas.getContext("2d");
+  let width=1,height=1,phase=0,last=0,duration=0,currentId=null;
+  const time=ms=>{const s=Math.floor((ms||0)/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
+  function size(){const d=Math.min(devicePixelRatio||1,2);width=canvas.clientWidth;height=canvas.clientHeight;canvas.width=width*d;canvas.height=height*d;ctx.setTransform(d,0,0,d,0,0);draw();}
+  function draw(){
+    ctx.clearRect(0,0,width,height);
+    const radius=Math.min(width*.34,height*.39),cx=width*.5,cy=height*.49;
+    for(let ring=0;ring<48;ring++){
+      const latitude=(ring/47-.5)*Math.PI;
       ctx.beginPath();
-      for (let x = 0; x <= width; x += 3) {
-        const k = x / width, env = Math.sin(k * Math.PI);
-        const y = height/2 + Math.sin(k*24 + phase*(layer+1)) * Math.cos(k*9 - phase) * env * height * (playing ? .23 : .12) * (1-layer*.2);
-        x ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      for(let i=0;i<=150;i++){
+        const u=i/150*Math.PI*2;
+        const ripple=1+.13*Math.sin(u*3+latitude*4+phase)+.06*Math.cos(u*7-phase);
+        let X=Math.cos(u)*Math.cos(latitude)*radius*ripple;
+        let Y=Math.sin(latitude)*radius;
+        let Z=Math.sin(u)*Math.cos(latitude)*radius*ripple;
+        const turn=phase*.13+.5, xx=X*Math.cos(turn)+Z*Math.sin(turn),zz=-X*Math.sin(turn)+Z*Math.cos(turn);
+        const yy=Y*.83-zz*.55,depth=1+zz/(radius*5);
+        const px=cx+(xx*.92+yy*.24)*depth,py=cy+yy*depth;
+        i?ctx.lineTo(px,py):ctx.moveTo(px,py);
       }
-      ctx.strokeStyle = layer === 1 ? "#c4aaff" : "#8fe5ff";
-      ctx.globalAlpha = .7 - layer*.2; ctx.lineWidth = layer === 0 ? 1.7 : 1;
-      ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 10; ctx.stroke();
+      ctx.strokeStyle=ring%5===0?"rgba(218,255,126,.78)":"rgba(182,159,248,.35)";
+      ctx.lineWidth=ring%5===0?1.2:.65;ctx.stroke();
     }
-    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-    ctx.fillStyle = "#ffffff08"; ctx.fillRect(0,height-2,width,2);
-    ctx.fillStyle = "#a0ddff"; ctx.fillRect(0,height-2,width*progress,2);
+    ctx.fillStyle="#d8ff7e";ctx.beginPath();ctx.arc(cx+radius*1.13*Math.cos(phase*.35),cy+radius*.75*Math.sin(phase*.35),3,0,Math.PI*2);ctx.fill();
   }
-  draw();
+  function animate(now){requestAnimationFrame(animate);if(document.hidden||now-last<40)return;last=now;if(!reduced)phase+=playing?.035:.008;draw();}
+  new ResizeObserver(size).observe(canvas);size();if(!reduced)requestAnimationFrame(animate);
+  $("#scFollow").href=CONFIG.soundcloud;
+  $("#scFrame").innerHTML='<iframe id="sc" allow="autoplay" scrolling="no" title="DYLUX on SoundCloud" src="https://w.soundcloud.com/player/?url='+encodeURIComponent(CONFIG.soundcloud)+'&color=%237a63b5&auto_play=false&hide_related=true&show_comments=false&show_artwork=true&visual=false"></iframe>';
+  let attempts=0;
+  function wire(){
+    if(!window.SC?.Widget){if(++attempts<40)setTimeout(wire,300);else $("#deckStatus").textContent="LISTEN ON SOUNDCLOUD ↗";return;}
+    const wd=SC.Widget($("#sc"));
+    function set(on){playing=on;$(".deck").classList.toggle("is-playing",on);$("#led").classList.toggle("on",on);$("#deckStatus").textContent=on?"NOW PLAYING":"READY TO PLAY";$("#scopeState").textContent=on?"IN MOTION":"STANDBY";$("#playTrack").textContent=on?"Ⅱ":"▶";$("#playTrack").setAttribute("aria-label",on?"Pause":"Play");}
+    function update(){wd.getCurrentSound(sound=>{
+      if(!sound)return;
+      if(currentId!==sound.id){currentId=sound.id;$("#trackSeek").value=0;$("#elapsed").textContent="0:00";}
+      duration=sound.duration||0;$("#duration").textContent=time(duration);
+      $("#nowPlaying").textContent=sound.title||"DYLUX";
+      $("#trackLink").href=sound.permalink_url||CONFIG.soundcloud;
+      const art=$("#trackArtwork");art.src=(sound.artwork_url||sound.user?.avatar_url||"assets/dylux-logo.png").replace("-large.","-t500x500.");art.alt=(sound.title||"DYLUX")+" artwork";
+      const tags=parseSoundCloudTags(sound.tag_list);if(!tags.length&&sound.genre)tags.push(sound.genre);
+      $("#trackTags").replaceChildren(...tags.map(tag=>{const el=document.createElement("span");el.className="track-tag";el.textContent=tag;return el;}));
+      $$("#trackList button").forEach(el=>{const active=el.dataset.id===String(sound.id);el.classList.toggle("active",active);el.setAttribute("aria-current",String(active));});
+    });}
+    wd.bind(SC.Widget.Events.READY,()=>{
+      set(false);update();wd.setVolume(80);
+      ["playTrack","prevTrack","nextTrack","trackSeek"].forEach(id=>$("#"+id).disabled=false);
+      wd.getSounds(sounds=>{
+        $("#trackList").replaceChildren(...sounds.map((sound,index)=>{
+          const btn=document.createElement("button");btn.type="button";btn.dataset.id=String(sound.id);
+          const number=document.createElement("span");number.className="track-number mono";number.textContent=String(index+1).padStart(2,"0");
+          const title=document.createElement("span");title.textContent=sound.title||"DYLUX";
+          const length=document.createElement("span");length.className="mono";length.textContent=time(sound.duration);
+          btn.append(number,title,length);btn.addEventListener("click",()=>{wd.skip(index);wd.play();});return btn;
+        }));update();
+      });
+    });
+    $("#playTrack").addEventListener("click",()=>wd.toggle());
+    $("#prevTrack").addEventListener("click",()=>{wd.prev();wd.play();});
+    $("#nextTrack").addEventListener("click",()=>{wd.next();wd.play();});
+    $("#trackSeek").addEventListener("input",e=>{wd.seekTo(Number(e.target.value)/1000*duration);});
+    $("#trackVolume").addEventListener("input",e=>wd.setVolume(Number(e.target.value)));
+    wd.bind(SC.Widget.Events.PLAY,()=>{update();set(true);});
+    wd.bind(SC.Widget.Events.PAUSE,()=>set(false));
+    wd.bind(SC.Widget.Events.FINISH,()=>set(false));
+    wd.bind(SC.Widget.Events.PLAY_PROGRESS,data=>{$("#trackSeek").value=Math.round((data.relativePosition||0)*1000);$("#elapsed").textContent=time(data.currentPosition);});
+    wd.bind(SC.Widget.Events.SEEK,data=>{$("#trackSeek").value=Math.round((data.relativePosition||0)*1000);$("#elapsed").textContent=time(data.currentPosition);});
+    wd.bind(SC.Widget.Events.ERROR,()=>{set(false);$("#deckStatus").textContent="PLAYBACK UNAVAILABLE — OPEN SOUNDCLOUD";$(".native-player").open=true;});
+  }
+  wire();
 })();
 
 function parseSoundCloudTags(value) {
@@ -259,31 +234,28 @@ function parseSoundCloudTags(value) {
   });
   function draw() {
     x.clearRect(0,0,w,h);
-    x.strokeStyle = "#89dbff10"; x.lineWidth = 1;
-    for(let i = 0; i < 12; i++) {
-      const xx = w * .08 + i * w * .076;
-      x.beginPath(); x.moveTo(xx,h*.16); x.lineTo(xx-w*.12,h*.88); x.stroke();
-    }
-    const layers = 30;
-    for (let j = 0; j < layers; j++) {
-      const k = j / (layers-1), oy = h*.2+k*h*.57, ox = w*.25-k*w*.15, ww = w*.69;
-      x.beginPath();
-      for(let i=0; i<=180; i++) {
-        const p=i/180, ph=p*Math.PI*2, motion=t+k*2;
-        const sine=Math.sin(ph*2+motion*.15);
+    const rows=38,cols=90,points=[];
+    for(let row=0;row<rows;row++){
+      const z=row/(rows-1),line=[];
+      for(let col=0;col<=cols;col++){
+        const u=col/cols,ph=u*Math.PI*4,shift=z*2+t*.3;
         let v;
-        if(mode==="sub") v=Math.sin(ph+motion*.1)*(1-amount*.25)+Math.sin(ph*2)*amount*.25;
-        else if(mode==="morph") v=sine*(1-amount)+(1-2*((p*2+k*.1+t*.03)%1))*amount;
-        else v=Math.sin(ph*2 + Math.sin(ph*(2+Math.round(k*3))+motion)*amount*5);
-        const X=ox+p*ww, Y=oy-v*h*(.06+amount*.025);
-        i ? x.lineTo(X,Y) : x.moveTo(X,Y);
-      }
-      x.strokeStyle=j%4===0 ? `rgba(195,164,255,${.2+k*.7})` : `rgba(112,219,255,${.12+k*.7})`;
-      x.lineWidth=j===layers-1?2:1;
-      x.shadowColor=j===layers-1?"#84dcff":"transparent"; x.shadowBlur=j===layers-1?12:0;
-      x.stroke();
+        if(mode==="sub")v=Math.sin(ph*.5+shift)*(1-amount*.3)+Math.sin(ph)*amount*.3;
+        else if(mode==="morph")v=Math.sin(ph+shift)*(1-amount)+Math.tanh(Math.sin(ph+shift)*8)*amount;
+        else v=Math.sin(ph+Math.sin(ph*2+shift)*amount*4);
+        const envelope=Math.sin(u*Math.PI)*Math.sin(z*Math.PI);
+        line.push([w*.12+u*w*.7+z*w*.15,h*.25+z*h*.58-v*envelope*h*(.12+amount*.1)-u*h*.16]);
+      }points.push(line);
     }
-    x.shadowBlur=0;
+    for(let row=0;row<rows;row++){
+      const z=row/(rows-1);x.beginPath();
+      points[row].forEach(([px,py],i)=>i?x.lineTo(px,py):x.moveTo(px,py));
+      x.strokeStyle=row%6===0?"rgba(217,255,135,.95)":"rgba(186,166,238,"+(.15+z*.6)+")";x.lineWidth=row%6===0?1.5:.8;x.stroke();
+    }
+    for(let col=0;col<=cols;col+=4){
+      x.beginPath();points.forEach((line,i)=>i?x.lineTo(...line[col]):x.moveTo(...line[col]));
+      x.strokeStyle="rgba(186,166,238,.19)";x.lineWidth=.6;x.stroke();
+    }
   }
   function animate(now) {
     if (!reduced) requestAnimationFrame(animate);
