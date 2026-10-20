@@ -138,80 +138,160 @@ if (!reduced) $$(".magnetic").forEach(m => {
   frame();
 })();
 
-/* ---------- MUSIC: SoundCloud widget + deck bars ---------- */
+/* ---------- MUSIC: native SoundCloud player + metadata + signal display ---------- */
 (() => {
-  const bars = $("#deckBars"), N = innerWidth < 600 ? 40 : 72;
-  bars.innerHTML = "<i></i>".repeat(N); const bs = $$("i", bars);
+  const canvas = $("#deckScope"), ctx = canvas.getContext("2d");
   const frame = $("#scFrame"), follow = $("#scFollow");
+  let progress = 0, phase = 0, width = 1, height = 1, lastFrame = 0, currentTrackId = null;
+  function size() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    width = canvas.clientWidth; height = canvas.clientHeight;
+    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  new ResizeObserver(size).observe(canvas); size();
   const url = CONFIG.soundcloud;
   if (url) {
-    frame.innerHTML = `<iframe id="sc" allow="autoplay" title="DYLUX on SoundCloud"
-      src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%2389dbff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&show_artwork=true&visual=false"></iframe>`;
+    frame.innerHTML = `<iframe id="sc" allow="autoplay" scrolling="no" title="DYLUX on SoundCloud"
+      src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff792e&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&show_artwork=true&visual=false"></iframe>`;
     follow.href = url;
     let attempts = 0;
     const wire = () => {
       if (!window.SC?.Widget) {
-        if (++attempts < 30) setTimeout(wire, 300);
+        if (++attempts < 40) setTimeout(wire, 300);
         return;
       }
       const wd = SC.Widget($("#sc"));
-      const updateTitle = () => wd.getCurrentSound(sound => {
-        if (sound?.title) $("#nowPlaying").textContent = sound.title;
+      const updateTrack = () => wd.getCurrentSound(sound => {
+        if (!sound) return;
+        if (sound.id !== currentTrackId) { currentTrackId = sound.id; progress = 0; }
+        $("#nowPlaying").textContent = sound.title || "DYLUX";
+        const tags = parseSoundCloudTags(sound.tag_list);
+        if (!tags.length && sound.genre) tags.push(sound.genre);
+        const root = $("#trackTags");
+        root.replaceChildren(...tags.map(tag => {
+          const chip = document.createElement("span");
+          chip.className = "track-tag"; chip.textContent = tag;
+          return chip;
+        }));
+        root.hidden = !tags.length;
       });
-      const set = on => { playing = on; $("#led").classList.toggle("on", on); $(".deck").classList.toggle("is-playing", on); $("#deckStatus").textContent = on ? "NOW PLAYING" : "PAUSED"; };
-      wd.bind(SC.Widget.Events.READY, updateTitle);
-      wd.bind(SC.Widget.Events.PLAY, updateTitle);
-      wd.bind(SC.Widget.Events.PLAY, () => set(true));
+      const set = on => {
+        playing = on; $("#led").classList.toggle("on", on);
+        $(".deck").classList.toggle("is-playing", on);
+        $("#deckStatus").textContent = on ? "NOW PLAYING" : "PAUSED";
+        $("#scopeState").textContent = on ? "PLAYING" : "IDLE";
+      };
+      wd.bind(SC.Widget.Events.READY, updateTrack);
+      wd.bind(SC.Widget.Events.PLAY, () => { updateTrack(); set(true); });
       wd.bind(SC.Widget.Events.PAUSE, () => set(false));
-      wd.bind(SC.Widget.Events.FINISH, () => set(false));
+      wd.bind(SC.Widget.Events.FINISH, () => { set(false); progress = 0; });
+      wd.bind(SC.Widget.Events.PLAY_PROGRESS, data => { progress = Math.max(0, Math.min(1, data.relativePosition || 0)); });
+      wd.bind(SC.Widget.Events.SEEK, data => { progress = Math.max(0, Math.min(1, data.relativePosition || 0)); updateTrack(); });
+      wd.bind(SC.Widget.Events.ERROR, () => { set(false); $("#deckStatus").textContent = "OPEN IN SOUNDCLOUD"; });
     };
     wire();
   } else {
-    frame.innerHTML = `<div class="sc-ph" data-placeholder><b>SOUNDCLOUD PLAYER</b><span>Your tracks play here once your SoundCloud link is added.</span></div>`;
-    follow.style.display = "none";
+    frame.textContent = "New music is on the way."; follow.hidden = true;
   }
-  let t = 0;
-  (function tick() {
-    t += .05;
-    bs.forEach((b, i) => {
-      const k = i / N, base = (1 - k) * .7 + .1;
-      const v = playing ? base * (.4 + .6 * Math.abs(Math.sin(t * (1.3 + k * 3) + i * .7))) * (.6 + energy) : .05 + .04 * Math.sin(t + i * .3);
-      b.style.height = Math.max(4, Math.min(100, v * 100)) + "%";
-    });
-    if (!reduced) requestAnimationFrame(tick);
-  })();
+  function draw(now = 0) {
+    if (!reduced) requestAnimationFrame(draw);
+    if (now - lastFrame < 32 && now !== 0) return;
+    lastFrame = now;
+    if (!reduced) phase += playing ? 0.055 : 0.012;
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = "#8dbbff12"; ctx.lineWidth = 1;
+    for (let x = 0; x < width; x += 32) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
+    for (let y = 0; y < height; y += 24) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
+    const gradient = ctx.createLinearGradient(0,0,width,0);
+    gradient.addColorStop(0,"#77deff"); gradient.addColorStop(.52,"#c6b3ff"); gradient.addColorStop(1,"#77deff");
+    const count = Math.max(24, Math.floor(width / 7)), step = width / count;
+    for (let i = 0; i < count; i++) {
+      const k = i / count, envelope = Math.pow(Math.sin(k * Math.PI),.6);
+      const movement = .3 + .7 * Math.abs(Math.sin(i*.34 + phase) * Math.cos(i*.09 - phase*.7));
+      const bar = 5 + envelope * movement * height * (playing ? .76 : .38);
+      ctx.fillStyle = gradient; ctx.globalAlpha = .18 + movement * (playing ? .55 : .3);
+      ctx.fillRect(i * step, (height - bar)/2, Math.max(1, step-3),bar);
+    }
+    ctx.globalAlpha = 1;
+    for (let layer = 0; layer < 3; layer++) {
+      ctx.beginPath();
+      for (let x = 0; x <= width; x += 3) {
+        const k = x / width, env = Math.sin(k * Math.PI);
+        const y = height/2 + Math.sin(k*24 + phase*(layer+1)) * Math.cos(k*9 - phase) * env * height * (playing ? .23 : .12) * (1-layer*.2);
+        x ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      }
+      ctx.strokeStyle = layer === 1 ? "#c4aaff" : "#8fe5ff";
+      ctx.globalAlpha = .7 - layer*.2; ctx.lineWidth = layer === 0 ? 1.7 : 1;
+      ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 10; ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    ctx.fillStyle = "#ffffff08"; ctx.fillRect(0,height-2,width,2);
+    ctx.fillStyle = "#a0ddff"; ctx.fillRect(0,height-2,width*progress,2);
+  }
+  draw();
 })();
+
+function parseSoundCloudTags(value) {
+  const matches = String(value || "").match(/"([^"]+)"|([^\s"]+)/g) || [];
+  return [...new Set(matches.map(tag => tag.replace(/^"|"$/g, "").trim()).filter(Boolean))];
+}
 
 /* ---------- SHOP: wavetable art + tilt + Gumroad checkout ---------- */
 (() => {
-  const c = $("#wtCanvas"), x = c.getContext("2d"); let w, h;
-  function size() { const d = Math.min(devicePixelRatio, 2); w = c.clientWidth; h = c.clientHeight; c.width = w * d; c.height = h * d; x.setTransform(d, 0, 0, d, 0, 0); }
-  size(); addEventListener("resize", size);
-  let t = 0;
-  (function draw() {
-    t += reduced ? 0 : .012; x.clearRect(0, 0, w, h);
-    const L = 26;
-    for (let j = 0; j < L; j++) {         // stacked 3D wavetable frames
-      const k = j / L, oy = h * .25 + k * h * .55, ox = w * .12 + k * w * .12, ww = w * .66;
-      x.beginPath();
-      for (let i = 0; i <= 120; i++) {
-        const p = i / 120, ph = p * Math.PI * 2;
-        const morph = (Math.sin(t + k * 3) + 1) / 2;
-        const sine = Math.sin(ph), saw = 1 - 2 * ((p * (1 + k * 3) + t * .2) % 1), sq = Math.sign(Math.sin(ph * (1 + Math.round(k * 4))));
-        const v = sine * (1 - morph) + (k > .5 ? sq : saw) * morph * .8;
-        const X = ox + p * ww, Y = oy - v * h * .07;
-        i ? x.lineTo(X, Y) : x.moveTo(X, Y);
-      }
-      x.strokeStyle = `rgba(255,255,255,${.08 + k * .6})`; x.lineWidth = 1.2; x.stroke();
-    }
-    requestAnimationFrame(draw);
-  })();
-
-  const prod = $("#product");
-  if (!reduced && matchMedia("(hover:hover)").matches) {
-    prod.addEventListener("pointermove", e => { const r = prod.getBoundingClientRect(); prod.style.transform = `perspective(1200px) rotateY(${((e.clientX - r.left) / r.width - .5) * 5}deg) rotateX(${-((e.clientY - r.top) / r.height - .5) * 5}deg)`; });
-    prod.addEventListener("pointerleave", () => { prod.style.transform = ""; });
+  const c = $("#wtCanvas"), x = c.getContext("2d");
+  let w = 1, h = 1, mode = "fm", amount = .5, t = 0, last = 0;
+  function size() {
+    const d = Math.min(devicePixelRatio || 1, 2);
+    w = c.clientWidth; h = c.clientHeight; c.width = Math.round(w*d); c.height = Math.round(h*d);
+    x.setTransform(d,0,0,d,0,0); draw();
   }
+  const modes = $$("[data-wave-mode]");
+  modes.forEach(button => button.addEventListener("click", () => {
+    mode = button.dataset.waveMode;
+    modes.forEach(other => other.setAttribute("aria-pressed", String(other === button)));
+    draw();
+  }));
+  $("#waveMorph").addEventListener("input", event => {
+    amount = Number(event.target.value) / 100;
+    $("#morphValue").textContent = Math.round(amount * 100) + "%";
+    draw();
+  });
+  function draw() {
+    x.clearRect(0,0,w,h);
+    x.strokeStyle = "#89dbff10"; x.lineWidth = 1;
+    for(let i = 0; i < 12; i++) {
+      const xx = w * .08 + i * w * .076;
+      x.beginPath(); x.moveTo(xx,h*.16); x.lineTo(xx-w*.12,h*.88); x.stroke();
+    }
+    const layers = 30;
+    for (let j = 0; j < layers; j++) {
+      const k = j / (layers-1), oy = h*.2+k*h*.57, ox = w*.25-k*w*.15, ww = w*.69;
+      x.beginPath();
+      for(let i=0; i<=180; i++) {
+        const p=i/180, ph=p*Math.PI*2, motion=t+k*2;
+        const sine=Math.sin(ph*2+motion*.15);
+        let v;
+        if(mode==="sub") v=Math.sin(ph+motion*.1)*(1-amount*.25)+Math.sin(ph*2)*amount*.25;
+        else if(mode==="morph") v=sine*(1-amount)+(1-2*((p*2+k*.1+t*.03)%1))*amount;
+        else v=Math.sin(ph*2 + Math.sin(ph*(2+Math.round(k*3))+motion)*amount*5);
+        const X=ox+p*ww, Y=oy-v*h*(.06+amount*.025);
+        i ? x.lineTo(X,Y) : x.moveTo(X,Y);
+      }
+      x.strokeStyle=j%4===0 ? `rgba(195,164,255,${.2+k*.7})` : `rgba(112,219,255,${.12+k*.7})`;
+      x.lineWidth=j===layers-1?2:1;
+      x.shadowColor=j===layers-1?"#84dcff":"transparent"; x.shadowBlur=j===layers-1?12:0;
+      x.stroke();
+    }
+    x.shadowBlur=0;
+  }
+  function animate(now) {
+    if (!reduced) requestAnimationFrame(animate);
+    if(now-last<40) return;
+    last=now; t+=.018; draw();
+  }
+  new ResizeObserver(size).observe(c); size();
+  if(!reduced) requestAnimationFrame(animate);
 
   const buy = $("#buyBtn"), label = $("#buyLabel"), fine = $("#buyFine");
   if (CONFIG.gumroadUrl) {

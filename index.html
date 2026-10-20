@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261020">
+<link rel="stylesheet" href="styles.css?v=20261020b">
 </head>
 <body>
 
@@ -97,9 +97,9 @@
         </div>
         <div class="deck-display">
           <div class="deck-disc" aria-hidden="true"><span>DYLUX</span></div>
-          <div class="deck-readout"><p class="mono">SOUNDCLOUD / DYLUX</p><h3 id="nowPlaying">Choose your frequency.</h3><p class="deck-genres">Dubstep / Riddim / Tech House / House</p></div>
+          <div class="deck-readout"><p class="mono">SOUNDCLOUD / DYLUX</p><h3 id="nowPlaying">Choose your frequency.</h3><div class="deck-genres" id="trackTags" aria-label="SoundCloud track tags"></div></div>
         </div>
-        <div class="deck-bars" id="deckBars" aria-hidden="true"></div>
+        <div class="signal-scope" aria-hidden="true"><div class="scope-label mono"><span>SIGNAL / MOTION</span><span id="scopeState">IDLE</span></div><canvas id="deckScope"></canvas><div class="scope-scale mono"><span>LOW</span><span>MID</span><span>HIGH</span></div></div>
         <div class="sc-frame" id="scFrame"><!-- SoundCloud widget injected by app.js --></div>
         <div class="deck-bottom mono"><span>SELECT A TRACK ABOVE TO PLAY</span><a href="https://soundcloud.com/dylux-beats" target="_blank" rel="noopener">Open SoundCloud ↗</a></div>
       </div>
@@ -116,16 +116,21 @@
     </header>
 
     <article class="product reveal tilt" id="product">
-      <div class="product-art" aria-hidden="true">
-        <canvas id="wtCanvas"></canvas>
-        <span class="tag mono">FREE / NAME YOUR PRICE</span>
+      <div class="product-art">
+        <div class="plugin-chrome mono"><span><i></i> DYLUX LABS</span><span>WT / 001</span></div>
+        <div class="plugin-title"><span class="mono">WAVETABLE ENGINE</span><strong>Shape your<br>next sound.</strong></div>
+        <div class="wave-preview"><canvas id="wtCanvas" aria-hidden="true"></canvas><span class="preview-caption mono">INTERACTIVE WAVEFORM PREVIEW</span></div>
+        <div class="preview-controls">
+          <div class="wave-modes" role="group" aria-label="Waveform preview mode"><button type="button" data-wave-mode="fm" aria-pressed="true">FM</button><button type="button" data-wave-mode="morph" aria-pressed="false">MORPH</button><button type="button" data-wave-mode="sub" aria-pressed="false">SUB</button></div>
+          <label class="morph-control mono" for="waveMorph"><span>SHAPE</span><input id="waveMorph" type="range" min="0" max="100" value="50"><output id="morphValue" for="waveMorph">50%</output></label>
+        </div>
+        <div class="plugin-footer mono"><span>FM / MORPH / SUB</span><span>BY DYLUX</span></div>
       </div>
       <div class="product-body">
-        <p class="mono product-kicker">TOOL 001</p>
-        <h3 class="product-title">WaveTable Generator</h3>
+        <p class="mono product-kicker"><span class="product-dot"></span> THE INDEPENDENT TOOLKIT / 001</p>
+        <h3 class="product-title">WaveTable<br><span>Generator</span></h3>
         <p class="product-desc">
-          Generate your own FM / Morphed / Sub WaveTable with ease with the new WaveTable Generator.<br>
-          Now for FREE. Show support if you can please! One man project.
+          Your next sound starts with a waveform. Create FM, morphed, and sub wavetables with a tool built by an independent producer.<br><br>Free to download. Name your price if you want to support the solo journey.
         </p>
         <ul class="product-feats mono">
           <li>Windows installer</li>
@@ -133,7 +138,7 @@
           <li>Instant download</li>
         </ul>
 
-        <div class="pwyw">
+        <div class="pwyw"><div class="product-price"><strong>$0<span>+</span></strong><span class="mono">YOUR SOUND.<br>YOUR PRICE.</span></div>
           <a class="btn btn-solid btn-wide magnetic" id="buyBtn" href="#" data-gumroad-overlay-checkout="true"><span id="buyLabel">Coming soon</span></a>
           <p class="fine" id="buyFine">Enter $0 for a free download, or name your price to support new music. Checkout and delivery by Gumroad.</p>
         </div>
@@ -154,7 +159,8 @@
         <figcaption class="mono">DYLUX — LIVE</figcaption>
       </figure>
       <div class="about-copy reveal">
-        <p class="lead">DYLUX aka Dylan is a DJ and producer from Kansas City, MO making Dubstep / Riddim / Tech House / House. Stay tuned for FREE Software / Plugins / Music. Support the solo journey if you can! &lt;3</p>
+        <p class="lead">DYLUX aka Dylan is a DJ and producer from Kansas City, MO making Dubstep / Riddim / Tech House / House.</p>
+        <p class="about-updates">Stay tuned for <strong>FREE Software / Plugins / Music.</strong><br>Support the solo journey if you can! <span class="support-heart">&lt;3</span></p>
         <a class="btn btn-ghost magnetic" id="bookingBtn" href="#"><span>Booking & inquiries</span></a>
       </div>
     </div>
@@ -169,6 +175,6 @@
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script src="https://gumroad.com/js/gumroad.js"></script>
-<script src="app.js?v=20261020"></script>
+<script src="app.js?v=20261020b"></script>
 </body>
 </html>
