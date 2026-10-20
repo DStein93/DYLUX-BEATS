@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20261020">
 </head>
 <body>
 
@@ -28,6 +28,8 @@
 <div class="fx-grain" aria-hidden="true"></div>
 <div class="fx-scan" aria-hidden="true"></div>
 <div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="signal-rail signal-left mono" aria-hidden="true"><span>DYLUX / SOUND + SOFTWARE</span><i></i><span>KANSAS CITY, MO</span></div>
+<div class="signal-rail signal-right mono" aria-hidden="true"><span>DUBSTEP / RIDDIM / TECH HOUSE / HOUSE</span><i></i><span>INDEPENDENT / ALWAYS</span></div>
 
 <!-- ===== HEADER: tabs left / logo center / socials right ===== -->
 <header class="topbar" id="topbar">
@@ -93,8 +95,13 @@
           <span class="deck-sp"></span>
           <span>DYLUX // DECK A</span>
         </div>
+        <div class="deck-display">
+          <div class="deck-disc" aria-hidden="true"><span>DYLUX</span></div>
+          <div class="deck-readout"><p class="mono">SOUNDCLOUD / DYLUX</p><h3 id="nowPlaying">Choose your frequency.</h3><p class="deck-genres">Dubstep / Riddim / Tech House / House</p></div>
+        </div>
         <div class="deck-bars" id="deckBars" aria-hidden="true"></div>
         <div class="sc-frame" id="scFrame"><!-- SoundCloud widget injected by app.js --></div>
+        <div class="deck-bottom mono"><span>SELECT A TRACK ABOVE TO PLAY</span><a href="https://soundcloud.com/dylux-beats" target="_blank" rel="noopener">Open SoundCloud ↗</a></div>
       </div>
       <a class="btn btn-ghost sc-follow magnetic" id="scFollow" href="#" target="_blank" rel="noopener"><span>Follow on SoundCloud ↗</span></a>
     </div>
@@ -147,13 +154,7 @@
         <figcaption class="mono">DYLUX — LIVE</figcaption>
       </figure>
       <div class="about-copy reveal">
-        <p class="lead" data-placeholder>[PLACEHOLDER] DYLUX is a DJ and producer from [CITY] making [GENRES]. One or two punchy lines that say who you are.</p>
-        <p data-placeholder>[PLACEHOLDER] A longer paragraph: how you started, your sound, shows you've played, labels or artists you've worked with, what's coming next.</p>
-        <div class="stats">
-          <div><b class="count" data-to="0">0</b><span class="mono">SHOWS</span></div>
-          <div><b class="count" data-to="0">0</b><span class="mono">RELEASES</span></div>
-          <div><b class="count" data-to="0">0</b><span class="mono">YEARS</span></div>
-        </div>
+        <p class="lead">DYLUX aka Dylan is a DJ and producer from Kansas City, MO making Dubstep / Riddim / Tech House / House. Stay tuned for FREE Software / Plugins / Music. Support the solo journey if you can! &lt;3</p>
         <a class="btn btn-ghost magnetic" id="bookingBtn" href="#"><span>Booking & inquiries</span></a>
       </div>
     </div>
@@ -168,6 +169,6 @@
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script src="https://gumroad.com/js/gumroad.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=20261020"></script>
 </body>
 </html>

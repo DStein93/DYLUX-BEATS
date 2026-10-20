@@ -230,3 +230,46 @@ main{overflow-x:clip;position:relative;z-index:1}
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none}
 }
+
+/* SoundCloud console and side signal detail. */
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid #89dbff;outline-offset:5px}
+.bg-vignette{background:radial-gradient(ellipse at 0% 35%,#53a2d31c,transparent 35%),radial-gradient(ellipse at 100% 65%,#8c7bcb18,transparent 35%),repeating-linear-gradient(90deg,#ffffff04 0 1px,transparent 1px 120px)}
+.signal-rail{position:fixed;top:calc(var(--head) + 40px);bottom:36px;width:40px;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:28px;color:#a0a7b4;font-size:9px;letter-spacing:.2em;pointer-events:none}
+.signal-left{left:22px;border-right:1px solid #89dbff25}
+.signal-right{right:22px;border-left:1px solid #89dbff25}
+.signal-rail span{writing-mode:vertical-rl}
+.signal-left span{transform:rotate(180deg)}
+.signal-rail i{width:12px;flex:1;max-height:200px;background:repeating-linear-gradient(to top,#89dbff90 0 2px,transparent 2px 8px);mask-image:linear-gradient(transparent,#000)}
+.hero::before,.hero::after{content:"";position:absolute;width:260px;height:260px;border:1px solid #89dbff25;border-radius:50%;top:35%;box-shadow:0 0 0 30px #89dbff06,0 0 0 60px #89dbff04}
+.hero::before{left:-160px}.hero::after{right:-160px}
+.section{width:calc(100% - 144px);padding-inline:24px}
+.player-wrap{display:block}
+.deck{padding:0;border-color:#ffffff30;background:linear-gradient(145deg,#151920,#08090d 65%);border-radius:12px;overflow:hidden;box-shadow:0 24px 100px #0009,0 0 50px #89dbff08}
+.deck-top{padding:18px 24px;margin:0;border-bottom:1px solid var(--line);background:#ffffff03;color:#b3becd;letter-spacing:.15em}
+.deck .led.on{background:#89dbff;box-shadow:0 0 14px #89dbff}
+.deck-display{display:flex;align-items:center;gap:24px;padding:30px 28px 18px}
+.deck-disc{flex:0 0 100px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:repeating-radial-gradient(circle,#ffffff08 0 1px,transparent 1px 4px),conic-gradient(#0c0d11,#4c5360,#121318,#282f3a,#0c0d11);border:1px solid #ffffff25;animation:deck-spin 14s linear infinite;animation-play-state:paused}
+.deck-disc span{display:grid;place-items:center;width:54%;aspect-ratio:1;border-radius:50%;background:#b9d7e6;color:#10141b;font-family:var(--ff-m);font-size:11px;font-weight:700;border:5px solid #0b1017}
+.deck.is-playing .deck-disc{animation-play-state:running}
+@keyframes deck-spin{to{transform:rotate(360deg)}}
+.deck-readout{min-width:0}.deck-readout .mono{font-size:.6rem;color:#89dbff;margin-bottom:9px}
+.deck-readout h3{font-size:clamp(1.1rem,2.8vw,1.8rem);font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+.deck-genres{font-size:.8rem;color:#a6aab5;margin-top:10px}
+.deck-bars{height:44px;margin:0 28px 20px;gap:4px}
+.deck-bars i{background:linear-gradient(to top,#243645,#a9e3ff)}
+.sc-frame{margin:0 20px;background:#14171d;border:1px solid #ffffff1a;border-radius:5px;overflow:hidden}
+.sc-frame iframe{height:450px;color-scheme:normal}
+.deck-bottom{display:flex;justify-content:space-between;gap:18px;padding:18px 24px;color:#949daa;font-size:.58rem;letter-spacing:.1em}
+.deck-bottom a{color:#a9e3ff}
+.sc-follow{margin-top:24px;border-color:#89dbff45}
+.about-copy .lead{font-size:clamp(1.2rem,2.1vw,1.65rem);line-height:1.6}
+.product{border-color:#ffffff25;background:linear-gradient(135deg,#10151b,#0a0a0b 70%)}
+@media(min-width:1700px){.signal-left{left:calc((100vw - 1480px)/2)}.signal-right{right:calc((100vw - 1480px)/2)}}
+@media(max-width:1000px){.signal-rail{display:none}.section{width:100%;padding-inline:24px}}
+@media(max-width:600px){
+  .section{padding-inline:16px}.deck-top{padding:14px;font-size:.5rem;letter-spacing:.08em}
+  .deck-display{gap:16px;padding:24px 16px 16px}.deck-disc{flex-basis:68px}.deck-disc span{font-size:8px;border-width:3px}
+  .deck-readout .mono{font-size:.5rem}.deck-genres{font-size:.65rem}.deck-bars{margin-inline:16px;height:32px}
+  .sc-frame{margin-inline:10px}.sc-frame iframe{height:400px}.deck-bottom{padding:16px 14px;flex-wrap:wrap;font-size:.5rem}
+}

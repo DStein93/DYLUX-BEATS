@@ -146,12 +146,21 @@ if (!reduced) $$(".magnetic").forEach(m => {
   const url = CONFIG.soundcloud;
   if (url) {
     frame.innerHTML = `<iframe id="sc" allow="autoplay" title="DYLUX on SoundCloud"
-      src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ffffff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"></iframe>`;
+      src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%2389dbff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&show_artwork=true&visual=false"></iframe>`;
     follow.href = url;
+    let attempts = 0;
     const wire = () => {
-      if (!window.SC) return setTimeout(wire, 300);
+      if (!window.SC?.Widget) {
+        if (++attempts < 30) setTimeout(wire, 300);
+        return;
+      }
       const wd = SC.Widget($("#sc"));
-      const set = on => { playing = on; $("#led").classList.toggle("on", on); $("#deckStatus").textContent = on ? "NOW PLAYING" : "PAUSED"; };
+      const updateTitle = () => wd.getCurrentSound(sound => {
+        if (sound?.title) $("#nowPlaying").textContent = sound.title;
+      });
+      const set = on => { playing = on; $("#led").classList.toggle("on", on); $(".deck").classList.toggle("is-playing", on); $("#deckStatus").textContent = on ? "NOW PLAYING" : "PAUSED"; };
+      wd.bind(SC.Widget.Events.READY, updateTitle);
+      wd.bind(SC.Widget.Events.PLAY, updateTitle);
       wd.bind(SC.Widget.Events.PLAY, () => set(true));
       wd.bind(SC.Widget.Events.PAUSE, () => set(false));
       wd.bind(SC.Widget.Events.FINISH, () => set(false));
@@ -169,7 +178,7 @@ if (!reduced) $$(".magnetic").forEach(m => {
       const v = playing ? base * (.4 + .6 * Math.abs(Math.sin(t * (1.3 + k * 3) + i * .7))) * (.6 + energy) : .05 + .04 * Math.sin(t + i * .3);
       b.style.height = Math.max(4, Math.min(100, v * 100)) + "%";
     });
-    requestAnimationFrame(tick);
+    if (!reduced) requestAnimationFrame(tick);
   })();
 })();
 
@@ -215,7 +224,7 @@ if (!reduced) $$(".magnetic").forEach(m => {
 })();
 
 /* ---------- booking ---------- */
-(() => { const b = $("#bookingBtn"); if (CONFIG.bookingEmail) b.href = "mailto:" + CONFIG.bookingEmail; else b.setAttribute("data-placeholder", ""); })();
+(() => { const b = $("#bookingBtn"); if (CONFIG.bookingEmail) b.href = "mailto:" + CONFIG.bookingEmail; else b.hidden = true; })();
 
 /* ---------- marquee: repeat the phrase set until it covers any screen width ---------- */
 (() => {
